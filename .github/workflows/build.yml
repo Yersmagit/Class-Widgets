@@ -1,4 +1,5 @@
 name: 构建
+run-name: "Nightly Build 夜间构建 ${{ formatDate(utcNow(), 'MM-DD') }}"
 
 on:
   schedule:
