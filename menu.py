@@ -300,7 +300,7 @@ class PluginCard(CardWidget):  # 插件卡片
         self.moreMenu.addActions([
             Action(
                 fIcon.FOLDER, f'打开“{title}”插件文件夹',
-                triggered=lambda: open_dir(os.path.join(os.getcwd(), conf.PLUGINS_DIR, self.plugin_dir))
+                triggered=lambda: open_dir(os.path.join(base_directory, conf.PLUGINS_DIR, self.plugin_dir))
             ),
             Action(
                 fIcon.DELETE, f'卸载“{title}”插件',
@@ -410,7 +410,7 @@ class PluginCard(CardWidget):  # 插件卡片
             except Exception as e:
                 logger.error(f"保存已安装插件失败：{e}")
             try:
-                rmtree(os.path.join(os.getcwd(), conf.PLUGINS_DIR, self.plugin_dir))  # 删除插件
+                rmtree(os.path.join(base_directory, conf.PLUGINS_DIR, self.plugin_dir))  # 删除插件
                 self.setParent(None)
                 self.deleteLater()  # 删除卡片
             except Exception as e:
@@ -541,7 +541,7 @@ class SettingsMenu(FluentWindow):
 
         plugin_card_layout = self.findChild(QVBoxLayout, 'plugin_card_layout')
         open_plugin_folder = self.findChild(PushButton, 'open_plugin_folder')
-        open_plugin_folder.clicked.connect(lambda: open_dir(os.path.join(os.getcwd(), conf.PLUGINS_DIR)))  # 打开插件目录
+        open_plugin_folder.clicked.connect(lambda: open_dir(os.path.join(base_directory, conf.PLUGINS_DIR)))  # 打开插件目录
 
         if not p_loader.plugins_settings:  # 若插件设置为空
             p_loader.load_plugins()  # 加载插件设置
@@ -681,7 +681,7 @@ class SettingsMenu(FluentWindow):
         set_fc_color.clicked.connect(self.ct_set_fc_color)
 
         open_theme_folder = self.findChild(HyperlinkLabel, 'open_theme_folder')  # 打开主题文件夹
-        open_theme_folder.clicked.connect(lambda: open_dir(os.path.join(os.getcwd(), 'ui')))
+        open_theme_folder.clicked.connect(lambda: open_dir(os.path.join(base_directory, 'ui')))
 
         select_theme_combo = self.findChild(ComboBox, 'combo_theme_select')  # 主题选择
         select_theme_combo.addItems(list_.theme_names)
