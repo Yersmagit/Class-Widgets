@@ -71,7 +71,7 @@ def stop(status=0):
             QTimer.singleShot(1000, exit_application)  # 1秒后强制退出
         except Exception as e:
             logger.error(f"关闭窗口时出错: {e}")
-    try:
+    '''try:
         if share.isAttached():
             share.detach()
             os.remove(share.nativeKey()) if os.name == 'posix' else None
@@ -82,7 +82,7 @@ def stop(status=0):
         logger.error(f"分离共享内存失败: {e}")
         exit_application()
     finally:
-        del share
+        del share'''
     logger.debug("程序退出")
     sys.exit(status)
 
