@@ -48,7 +48,7 @@ color: rgba(37, 37, 37, 255);
 font-weight: bold;</string>
    </property>
    <property name="text">
-    <string>  测试</string>
+    <string>  正在加载</string>
    </property>
    <property name="icon">
     <iconset>
