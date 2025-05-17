@@ -79,7 +79,7 @@ color: rgba(37, 37, 37, 255);
 font-weight: bold</string>
    </property>
    <property name="text">
-    <string>测试测试</string>
+    <string>加载中...</string>
    </property>
    <property name="textFormat">
     <enum>Qt::PlainText</enum>
