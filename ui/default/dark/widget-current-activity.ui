@@ -53,7 +53,7 @@
 </string>
    </property>
    <property name="text">
-    <string>  测试</string>
+    <string>  正在加载</string>
    </property>
    <property name="icon">
     <iconset>
