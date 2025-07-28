@@ -137,13 +137,13 @@
     </message>
     <message>
         <location filename="../widget-next-activity.ui" line="82"/>
+        <location filename="../dark/widget-next-activity.ui" line="82"/>
         <source>加载中...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../dark/widget-next-activity.ui" line="82"/>
         <source>测试测试</source>
-        <translation>Sinash sinash</translation>
+        <translation type="vanished">Sinash sinash</translation>
     </message>
     <message>
         <location filename="../widget-time.ui" line="26"/>
