@@ -158,18 +158,17 @@
     </message>
     <message>
         <location filename="../widget-time.ui" line="80"/>
+        <location filename="../dark/widget-time.ui" line="82"/>
         <source>-- 日 周八</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../dark/widget-time.ui" line="50"/>
         <source>2025 年  13 月</source>
-        <translation>2025 年  13 月</translation>
+        <translation type="vanished">2025 年  13 月</translation>
     </message>
     <message>
-        <location filename="../dark/widget-time.ui" line="82"/>
         <source>32 日 周二</source>
-        <translation>32 日 周二</translation>
+        <translation type="vanished">32 日 周二</translation>
     </message>
     <message>
         <location filename="../widget-weather.ui" line="26"/>
@@ -197,6 +196,11 @@
     <message>
         <location filename="../widget-countdown-day.ui" line="82"/>
         <source>-- 天</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../dark/widget-time.ui" line="50"/>
+        <source>20-- 年  -- 月</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
