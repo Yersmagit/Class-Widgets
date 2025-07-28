@@ -151,7 +151,7 @@
     </message>
     <message>
         <location filename="../widget-time.ui" line="49"/>
-        <source>2025 年  - 月</source>
+        <source>20-- 年  - 月</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
