@@ -36,15 +36,19 @@
 <context>
     <name>DesktopWidget</name>
     <message>
+        <source>{year} 年 {month}</source>
+        <translation type="vanished">{year} 年 {month}</translation>
+    </message>
+    <message>
         <location filename="../main.py" line="1732"/>
         <location filename="../main.py" line="2083"/>
-        <source>{year} 年 {month}</source>
-        <translation>{year} 年 {month}</translation>
+        <source>{year} 年  {month}</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.py" line="1734"/>
         <location filename="../main.py" line="2084"/>
-        <source>{day}日  {week}</source>
+        <source>{day} 日  {week}</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

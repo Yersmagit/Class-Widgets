@@ -37,16 +37,24 @@ You can add more voice in system settings (*≧▽≦)</translation>
 <context>
     <name>DesktopWidget</name>
     <message>
+        <source>{year} 年 {month}</source>
+        <translation type="vanished">{month} {year}</translation>
+    </message>
+    <message>
+        <source>{day}日  {week}</source>
+        <translation type="vanished">{day}  {week}</translation>
+    </message>
+    <message>
         <location filename="../main.py" line="1732"/>
         <location filename="../main.py" line="2083"/>
-        <source>{year} 年 {month}</source>
-        <translation>{month} {year}</translation>
+        <source>{year} 年  {month}</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.py" line="1734"/>
         <location filename="../main.py" line="2084"/>
-        <source>{day}日  {week}</source>
-        <translation>{day}  {week}</translation>
+        <source>{day} 日  {week}</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../main.py" line="2005"/>
