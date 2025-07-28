@@ -47,7 +47,7 @@
 font-weight: bold;</string>
    </property>
    <property name="text">
-    <string>2025 年  13 月</string>
+    <string>20-- 年  -- 月</string>
    </property>
    <property name="textFormat">
     <enum>Qt::PlainText</enum>
@@ -79,7 +79,7 @@ color: rgba(255, 255, 255, 255);
 font-weight: bold</string>
    </property>
    <property name="text">
-    <string>32 日 周二</string>
+    <string>-- 日 周八</string>
    </property>
    <property name="textFormat">
     <enum>Qt::PlainText</enum>
