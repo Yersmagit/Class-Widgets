@@ -48,7 +48,7 @@ color: rgba(37, 37, 37, 255);
 font-weight: bold;</string>
    </property>
    <property name="text">
-    <string>  测试</string>
+    <string>  正在加载</string>
    </property>
    <property name="icon">
     <iconset>
@@ -71,7 +71,7 @@ font-weight: bold;</string>
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(0, 255, 127);
+    <string notr="true">background-color: rgb(242, 243, 245);
 border-radius:20px</string>
    </property>
    <property name="text">
