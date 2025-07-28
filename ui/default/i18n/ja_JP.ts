@@ -97,7 +97,6 @@
         <location filename="../widget-current-activity.ui" line="26"/>
         <location filename="../widget-current-activity.ui" line="103"/>
         <location filename="../dark/widget-current-activity.ui" line="26"/>
-        <location filename="../dark/widget-current-activity.ui" line="108"/>
         <source>当前活动</source>
         <translation>現在のイベント</translation>
     </message>
@@ -110,6 +109,11 @@
         <location filename="../dark/widget-current-activity.ui" line="56"/>
         <source>  测试</source>
         <translation>  テスト</translation>
+    </message>
+    <message>
+        <location filename="../dark/widget-current-activity.ui" line="108"/>
+        <source>正在加载</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="../dark/widget-floating.ui" line="178"/>
