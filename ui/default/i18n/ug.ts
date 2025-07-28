@@ -62,14 +62,8 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../dark/widget-countdown-day.ui" line="50"/>
-        <source>距离 中考 还有</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../dark/widget-countdown-day.ui" line="82"/>
         <source>300 天</source>
-        <translation>300 kun</translation>
+        <translation type="vanished">300 kun</translation>
     </message>
     <message>
         <location filename="../widget-countdown.ui" line="26"/>
@@ -193,11 +187,13 @@
         <translation>114℉</translation>
     </message>
     <message>
+        <location filename="../dark/widget-countdown-day.ui" line="50"/>
         <location filename="../widget-countdown-day.ui" line="50"/>
         <source>距离 - - 还有</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../dark/widget-countdown-day.ui" line="82"/>
         <location filename="../widget-countdown-day.ui" line="82"/>
         <source>-- 天</source>
         <translation type="unfinished"></translation>

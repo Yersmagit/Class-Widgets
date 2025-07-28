@@ -62,14 +62,12 @@
         <translation>カウントダウンデー</translation>
     </message>
     <message>
-        <location filename="../dark/widget-countdown-day.ui" line="50"/>
         <source>距离 中考 还有</source>
-        <translation>高校入試 まであと</translation>
+        <translation type="vanished">高校入試 まであと</translation>
     </message>
     <message>
-        <location filename="../dark/widget-countdown-day.ui" line="82"/>
         <source>300 天</source>
-        <translation>300日</translation>
+        <translation type="vanished">300日</translation>
     </message>
     <message>
         <location filename="../widget-countdown.ui" line="26"/>
@@ -193,11 +191,13 @@
         <translation>114°Fの</translation>
     </message>
     <message>
+        <location filename="../dark/widget-countdown-day.ui" line="50"/>
         <location filename="../widget-countdown-day.ui" line="50"/>
         <source>距离 - - 还有</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
+        <location filename="../dark/widget-countdown-day.ui" line="82"/>
         <location filename="../widget-countdown-day.ui" line="82"/>
         <source>-- 天</source>
         <translation type="unfinished"></translation>
