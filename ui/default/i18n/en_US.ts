@@ -85,13 +85,13 @@
     </message>
     <message>
         <location filename="../widget-countdown.ui" line="116"/>
+        <location filename="../dark/widget-countdown.ui" line="116"/>
         <source>--:--</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../dark/widget-countdown.ui" line="116"/>
         <source>00:00</source>
-        <translation>00:00</translation>
+        <translation type="vanished">00:00</translation>
     </message>
     <message>
         <location filename="../widget-current-activity.ui" line="26"/>
