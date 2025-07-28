@@ -151,12 +151,20 @@
     </message>
     <message>
         <location filename="../widget-time.ui" line="49"/>
+        <source>2025 年  - 月</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../widget-time.ui" line="80"/>
+        <source>-- 日 周八</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../dark/widget-time.ui" line="50"/>
         <source>2025 年  13 月</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../widget-time.ui" line="80"/>
         <location filename="../dark/widget-time.ui" line="82"/>
         <source>32 日 周二</source>
         <translation type="unfinished"></translation>
