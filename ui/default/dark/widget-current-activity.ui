@@ -76,7 +76,7 @@
     </rect>
    </property>
    <property name="styleSheet">
-    <string notr="true">background-color: rgb(0, 255, 127);
+    <string notr="true">background-color: rgb(15, 18, 22);
 border-radius:20px</string>
    </property>
    <property name="text">
@@ -105,7 +105,7 @@ border-radius:20px</string>
 font-weight: bold;</string>
    </property>
    <property name="text">
-    <string>当前活动</string>
+    <string>正在加载</string>
    </property>
    <property name="textFormat">
     <enum>Qt::PlainText</enum>
