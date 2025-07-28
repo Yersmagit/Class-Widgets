@@ -101,6 +101,10 @@
     </message>
     <message>
         <location filename="../widget-current-activity.ui" line="51"/>
+        <source>  正在加载</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <location filename="../dark/widget-current-activity.ui" line="56"/>
         <source>  测试</source>
         <translation type="unfinished"></translation>
