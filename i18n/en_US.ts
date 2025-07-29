@@ -39,13 +39,13 @@ You can add more voice in system settings (*≧▽≦)</translation>
     <message>
         <location filename="../main.py" line="1732"/>
         <location filename="../main.py" line="2083"/>
-        <source>{year} 年 {month}</source>
-        <translation>{month} {year}</translation>
+        <source>{year} 年  {month}</source>
+        <translation>{month}  {year}</translation>
     </message>
     <message>
         <location filename="../main.py" line="1734"/>
         <location filename="../main.py" line="2084"/>
-        <source>{day}日  {week}</source>
+        <source>{day} 日  {week}</source>
         <translation>{day}  {week}</translation>
     </message>
     <message>
