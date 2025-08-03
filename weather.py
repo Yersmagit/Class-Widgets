@@ -475,12 +475,14 @@ class WeatherManager:
             tomorrow_precipitation = False
             precipitation_day = 0
             first_hour_precip = False
+            same_precipitation = True
             
             # 从逐小时预报中提取降水时间分组
             if hourly_info:
                 # 第一个时间段是否为降水
-                if hourly_info and len(hourly_info) > 0 and "precipitation" in hourly_info[0]:
-                    first_hour_precip = hourly_info[0]["precipitation"]
+                if len(hourly_info) > 0 and 'precipitation' in hourly_info[0]:
+                    first_hour_precip = hourly_info[0]['precipitation']
+                    same_precipitation = (precipitation_now == first_hour_precip)
                 
                 # 降水时间分组
                 if isinstance(hourly_info[-1], dict) and 'precipitation_time' in hourly_info[-1]:
@@ -489,19 +491,20 @@ class WeatherManager:
             # 从多天预报中提取降水信息
             if daily_info:
                 # 明天降水信息
-                if len(daily_info) > 1 and "precipitation_day" in daily_info[1]:
-                    tomorrow_precipitation = daily_info[1]["precipitation_day"]
+                if len(daily_info) > 1 and 'precipitation_day' in daily_info[1]:
+                    tomorrow_precipitation = daily_info[1]['precipitation_day']
                 
                 # 连续降水天数
                 if isinstance(daily_info[-1], dict):
                     precipitation_day = daily_info[-1].get('precipitation_day', 0)
 
             return {
-                'precipitation': precipitation_now,  # 使用当前天气状态
-                'precipitation_time': precipitation_time,
-                'tomorrow_precipitation': tomorrow_precipitation,
-                'precipitation_day': precipitation_day,
-                'first_hour_precip': first_hour_precip
+                'precipitation': precipitation_now,  # 当前是否降水
+                'precipitation_time': precipitation_time,  # 降水状态逐小时预报分组列表
+                'tomorrow_precipitation': tomorrow_precipitation,  # 明天是否降水
+                'precipitation_day': precipitation_day,  # 降水持续天数
+                'first_hour_precip': first_hour_precip,  # 预报中第一小时是否降水
+                'same_precipitation': same_precipitation  # 当前降水和第一小时降水状态是否相同
             }
         except Exception as e:
             logger.error(f'获取降水信息失败: {e}')
@@ -516,26 +519,23 @@ class WeatherManager:
         try:
             precip_info = self.get_precipitation_info()
             reminders = []
-            
+
             # 当前降水提醒
             hourly_forecast = self.fetch_hourly_forecast()
             if hourly_forecast and len(hourly_forecast) > 0:
-                # 判断现在和第一个小时是否都为降水
-                current_precip = precip_info['precipitation']
-                first_hour_precip = hourly_forecast[0].get('precipitation', False)
-                same_precipitation = (current_precip == first_hour_precip)
+                same_precipitation = precip_info['same_precipitation']
                 if same_precipitation:  # 当前降水和第一个小时的降水状态相同
                     if precip_info['precipitation']:  # 当前正在降水，降水持续
                         if precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 2:
                             duration = precip_info['precipitation_time'][0]
                             reminders.append({
-                                'type': 'precipitation',
+                                'type': 'precipitation_hours',
                                 'title': f'降水将持续 {duration} 小时',
                                 'icon': '6'
                             })
                         else:
                             reminders.append({
-                                'type': 'precipitation',
+                                'type': 'precipitation_continue',
                                 'title': f'降水将持续很久',
                                 'icon': '6'
                             })
@@ -549,7 +549,7 @@ class WeatherManager:
                             })
                         elif precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 6:
                             reminders.append({
-                                'type': 'precipitation_soon',
+                                'type': 'may_precipitation',
                                 'title': '可能有降水',
                                 'icon': '6'
                             })
@@ -2179,7 +2179,7 @@ if __name__ == '__main__':
     try:
         print("=== 测试 ===")
 
-        CITY_NAME = '淮阴'
+        CITY_NAME = '北京'
 
         cities = search_by_name(CITY_NAME)
         print(f"搜索{CITY_NAME}的结果: {cities[:5]}")
@@ -2231,7 +2231,7 @@ if __name__ == '__main__':
         else:
             print("无逐小时预报数据")
         
-        # 测试三天预报
+        # 测试5天预报
         daily_forecast = get_daily_forecast(5)
         if daily_forecast:
             print("\n5 天天气预报:")
@@ -2262,6 +2262,8 @@ if __name__ == '__main__':
 
         precipitation_info = get_precipitation_info()
         print(precipitation_info)
+
+        print(weather_manager.get_weather_reminders())
 
     except Exception as e:
         print(f"测试出错: {e}")

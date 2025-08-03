@@ -1808,15 +1808,16 @@ class DesktopWidget(QWidget):  # 主要小组件
             self.weather_reminder_text.setAlignment(Qt.AlignCenter)
             self.weather_reminder_text.setStyleSheet(self.temperature.styleSheet())
             self.weather_reminder_text.setFont(self.temperature.font())
-            self.weather_reminder_text.setFixedWidth(138)  # 固定宽度
+            self.weather_reminder_text.setFixedWidth(112)  # 固定宽度
             self.weather_reminder_text.hide()
-            content_layout.addWidget(self.weather_reminder_text)
             
             # 天气提醒图标
             self.reminder_icon = IconWidget(self)
-            self.reminder_icon.setFixedSize(22, 22)
+            self.reminder_icon.setFixedSize(26, 26)
             self.reminder_icon.hide()
+
             content_layout.addWidget(self.reminder_icon)
+            content_layout.addWidget(self.weather_reminder_text)
             
             # 天气提醒状态变量
             self.current_reminders = []  # 存储提醒列表
@@ -2270,7 +2271,6 @@ class DesktopWidget(QWidget):  # 主要小组件
             elif self.current_reminders:
                 self._fade_to_reminder()
             else:
-                # 没有预警和提醒
                 self._fade_to_temperature()
         
         elif self.showing_alert:
@@ -2354,6 +2354,10 @@ class DesktopWidget(QWidget):  # 主要小组件
             pass
         self.fade_out_group.finished.connect(_start_alert_fade_in)
         self.fade_out_group.start()
+
+        # 重置索引
+        self.current_reminder_index = 0
+
         self.showing_temperature = False
         self.showing_reminder = False
         self.showing_alert = True
@@ -2420,6 +2424,11 @@ class DesktopWidget(QWidget):  # 主要小组件
             pass
         self.fade_out_group.finished.connect(_start_temperature_fade_in)
         self.fade_out_group.start()
+
+        # 重置索引
+        self.current_alert_index = 0
+        self.current_reminder_index = 0
+
         self.showing_alert = False
         self.showing_reminder = False
         self.showing_temperature = True
@@ -2648,7 +2657,7 @@ class DesktopWidget(QWidget):  # 主要小组件
         return get_alert_image(color)
 
     def _reset_weather_alert_state(self) -> None:
-        """重置天气预警显示状态"""
+        """重置天气预警、提醒显示状态"""
         for timer_name in ['weather_alert_timer']:
             timer = getattr(self, timer_name, None)
             if timer:
@@ -2687,15 +2696,14 @@ class DesktopWidget(QWidget):  # 主要小组件
         
         # 提醒文本
         self.weather_reminder_text.setText(reminder['title'])
-        logger.debug(f'已生成提醒：{reminder['title']}')
         
         # 调整字号
         char_count = len(reminder['title'])
         if char_count <= 6:
             font_size = 14
-        elif char_count <= 7:
+        elif char_count <= 8:
             font_size = 13
-        elif char_count == 10:
+        elif char_count <= 10:
             font_size = 12
         else:
             font_size = 10
@@ -2708,8 +2716,10 @@ class DesktopWidget(QWidget):  # 主要小组件
         if char_count <= 5:
             self.reminder_icon.setIcon(QIcon(f"{base_directory}/img/weather/{reminder['icon']}.svg"))
             self.reminder_icon.show()
+            self.weather_reminder_text.setFixedWidth(96)
         else:
             self.reminder_icon.hide()
+            self.weather_reminder_text.setFixedWidth(138)
 
     def detect_theme_changed(self) -> None:
         theme_ = config_center.read_conf('General', 'theme')
@@ -2747,17 +2757,22 @@ class DesktopWidget(QWidget):  # 主要小组件
                 self.current_alerts = unique_alerts
                 self.current_alert_index = 0
 
-                # 获取天气提醒信息
-                self.current_reminders = weather_manager.get_weather_reminders()
-                self.current_reminder_index = 0
-                
                 if self.current_alerts:
                     logger.debug(f'获取到 {len(self.current_alerts)} 个天气预警')
                     for i, alert in enumerate(self.current_alerts):
                         logger.debug(f'预警 {i+1}: {alert.get("title", "未知")}')
 
+                # 获取天气提醒信息
+                self.current_reminders = weather_manager.get_weather_reminders()
+                self.current_reminder_index = 0
+
+                if self.current_reminders:
+                    logger.debug(f'获取到 {len(self.current_reminders)} 个天气提醒')
+                    for i, reminder in enumerate(self.current_reminders):
+                        logger.debug(f'提醒 {i+1}: {reminder.get("title", "未知")}')
+
             except Exception as e:
-                logger.warning(f'获取预警数据失败：{e}')
+                logger.warning(f'获取预警和提醒数据失败：{e}')
                 self.current_alerts = []
                 self.current_alert_index = 0
 
@@ -2773,7 +2788,7 @@ class DesktopWidget(QWidget):  # 主要小组件
                     QPixmap(db.get_weather_icon_by_code(db.get_weather_data('icon', weather_data)))
                 )
                 self.alert_icon.hide()
-                if self.current_alerts and len(self.current_alerts) > 0:
+                if self.current_alerts or self.current_reminders:
                     self.weather_alert_text.setFixedWidth(80)
                     self.weather_alert_text.setFixedHeight(40)
                     self._display_current_alert()
