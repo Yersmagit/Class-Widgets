@@ -13,7 +13,7 @@ from shutil import copy
 from typing import Optional, Dict, List, Any, Union, Tuple
 
 from PyQt5 import uic
-from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect, QEasingCurve, QSize, QPoint, QUrl, QObject, QParallelAnimationGroup
+from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QRect, QEasingCurve, QSize, QPoint, QUrl, QObject, QParallelAnimationGroup, QSequentialAnimationGroup
 from PyQt5.QtGui import QColor, QIcon, QPixmap, QPainter, QDesktopServices
 from PyQt5.QtGui import QFontDatabase
 from PyQt5.QtSvg import QSvgRenderer
@@ -2301,8 +2301,8 @@ class DesktopWidget(QWidget):  # 主要小组件
         self.temperature.setGraphicsEffect(self.temperature_opacity)
         weather_fade_out = QPropertyAnimation(self.weather_opacity, b'opacity')
         temp_fade_out = QPropertyAnimation(self.temperature_opacity, b'opacity')
-        weather_fade_out.setDuration(700)
-        temp_fade_out.setDuration(700)
+        weather_fade_out.setDuration(500)
+        temp_fade_out.setDuration(500)
         weather_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         temp_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         weather_fade_out.setStartValue(1.0)
@@ -2330,8 +2330,8 @@ class DesktopWidget(QWidget):  # 主要小组件
             self._display_current_alert()
             alert_text_fade_in = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
             alert_icon_fade_in = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
-            alert_text_fade_in.setDuration(700)
-            alert_icon_fade_in.setDuration(700)
+            alert_text_fade_in.setDuration(500)
+            alert_icon_fade_in.setDuration(500)
             alert_text_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             alert_icon_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             alert_text_fade_in.setStartValue(0.0)
@@ -2437,8 +2437,8 @@ class DesktopWidget(QWidget):  # 主要小组件
         """在预警之间切换的动画"""
         alert_text_fade_out = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
         alert_icon_fade_out = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
-        alert_text_fade_out.setDuration(400)
-        alert_icon_fade_out.setDuration(400)
+        alert_text_fade_out.setDuration(500)
+        alert_icon_fade_out.setDuration(500)
         alert_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         alert_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         alert_text_fade_out.setStartValue(1.0)
@@ -2453,8 +2453,8 @@ class DesktopWidget(QWidget):  # 主要小组件
             self._display_current_alert()
             alert_text_fade_in = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
             alert_icon_fade_in = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
-            alert_text_fade_in.setDuration(400)
-            alert_icon_fade_in.setDuration(400)
+            alert_text_fade_in.setDuration(500)
+            alert_icon_fade_in.setDuration(500)
             alert_text_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             alert_icon_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             alert_text_fade_in.setStartValue(0.0)
@@ -2483,7 +2483,7 @@ class DesktopWidget(QWidget):  # 主要小组件
         # 显示提醒
         self._display_current_reminder()
         
-        # 淡入
+        # 淡入提醒
         self.reminder_opacity = QGraphicsOpacityEffect(self.weather_reminder_text)
         self.weather_reminder_text.setGraphicsEffect(self.reminder_opacity)
         self.reminder_icon_opacity = QGraphicsOpacityEffect(self.reminder_icon)
@@ -2492,8 +2492,8 @@ class DesktopWidget(QWidget):  # 主要小组件
         reminder_text_fade_in = QPropertyAnimation(self.reminder_opacity, b"opacity")
         reminder_icon_fade_in = QPropertyAnimation(self.reminder_icon_opacity, b"opacity")
         
-        reminder_text_fade_in.setDuration(700)
-        reminder_icon_fade_in.setDuration(700)
+        reminder_text_fade_in.setDuration(500)
+        reminder_icon_fade_in.setDuration(500)
         reminder_text_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
         reminder_icon_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
         
@@ -2522,8 +2522,8 @@ class DesktopWidget(QWidget):  # 主要小组件
         reminder_text_fade_out = QPropertyAnimation(self.reminder_opacity, b"opacity")
         reminder_icon_fade_out = QPropertyAnimation(self.reminder_icon_opacity, b"opacity")
         
-        reminder_text_fade_out.setDuration(400)
-        reminder_icon_fade_out.setDuration(400)
+        reminder_text_fade_out.setDuration(500)
+        reminder_icon_fade_out.setDuration(500)
         reminder_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         reminder_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         
@@ -2543,8 +2543,8 @@ class DesktopWidget(QWidget):  # 主要小组件
             reminder_text_fade_in = QPropertyAnimation(self.reminder_opacity, b"opacity")
             reminder_icon_fade_in = QPropertyAnimation(self.reminder_icon_opacity, b"opacity")
             
-            reminder_text_fade_in.setDuration(400)
-            reminder_icon_fade_in.setDuration(400)
+            reminder_text_fade_in.setDuration(500)
+            reminder_icon_fade_in.setDuration(500)
             reminder_text_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             reminder_icon_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             
@@ -2665,6 +2665,7 @@ class DesktopWidget(QWidget):  # 主要小组件
         self.showing_temperature = True
         self.showing_alert = False
         self.showing_reminder = False
+        
         self.current_alerts = getattr(self, 'current_alerts', [])
         self.current_alerts.clear()
         self.current_alert_index = 0
@@ -2741,6 +2742,9 @@ class DesktopWidget(QWidget):  # 主要小组件
             weather_data_temp = weather_data
             self._reset_weather_alert_state()
             try:
+                # 更新数据
+                weather_manager.current_weather_data = original_weather_data
+
                 # 获取预警数据
                 unified_alert_data = get_unified_weather_alerts(original_weather_data)
                 all_alerts = unified_alert_data.get('all_alerts', [])
