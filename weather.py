@@ -490,7 +490,7 @@ class WeatherManager:
             
             # 从多天预报中提取降水信息
             if daily_info:
-                # 明天降水信息
+                # 明日降水信息
                 if len(daily_info) > 1 and 'precipitation_day' in daily_info[1]:
                     tomorrow_precipitation = daily_info[1]['precipitation_day']
                 
@@ -514,7 +514,7 @@ class WeatherManager:
             return {
                 'precipitation': precipitation_now,  # 当前是否降水
                 'precipitation_time': precipitation_time,  # 降水状态逐小时预报分组列表
-                'tomorrow_precipitation': tomorrow_precipitation,  # 明天是否降水
+                'tomorrow_precipitation': tomorrow_precipitation,  # 明日是否降水
                 'precipitation_day': precipitation_day,  # 降水持续天数
                 'first_hour_precip': first_hour_precip,  # 预报中第一小时是否降水
                 'same_precipitation': same_precipitation,  # 当前降水和第一小时降水状态是否相同
@@ -561,12 +561,12 @@ class WeatherManager:
                                 'title': f'{hours} 小时后有降水',
                                 'icon': 'rain'
                             })
-                        # 明天降水提醒
+                        # 明日降水提醒
                         elif precip_info['tomorrow_precipitation']:
                             days = precip_info['precipitation_day']  # 先留着吧
                             reminders.append({
                                 'type': 'tomorrow_precipitation',
-                                'title': '明天有降水',
+                                'title': '明日有降水',
                                 'icon': 'rain'
                             })
                 else:
@@ -587,13 +587,13 @@ class WeatherManager:
             if precip_info['temp_change'] >= 8:
                 reminders.append({
                     'type': 'temperature_rise',
-                    'title': '明天气温陡升',
+                    'title': '明日气温陡升',
                     'icon': 'high_temp'
                 })
             elif precip_info['temp_change'] <= -8:
                 reminders.append({
                     'type': 'temperature_drop',
-                    'title': '明天气温骤降',
+                    'title': '明日气温骤降',
                     'icon': 'low_temp'
                 })
             
@@ -896,7 +896,7 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
         """解析多天天气预报数据，添加降水日统计"""
         result = []
         precipitation_days = []  # 存储降水日标记
-        tomorrow_precipitation = False  # 明天白天是否降水
+        tomorrow_precipitation = False  # 明日白天是否降水
         precipitation_day = 0  # 连续降水日天数
         
         try:
@@ -924,13 +924,13 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
                 result.append(day_data)
                 precipitation_days.append(is_precip_day)
                 
-                # 检查明天是否是白天降水日
+                # 检查明日是否是白天降水日
                 if i == 1:
                     tomorrow_precipitation = day_precip
             
             # 计算连续降水日天数
             if tomorrow_precipitation:
-                # 从明天开始计算连续降水日
+                # 从明日开始计算连续降水日
                 for i in range(1, len(precipitation_days)):
                     if precipitation_days[i]:
                         precipitation_day += 1
