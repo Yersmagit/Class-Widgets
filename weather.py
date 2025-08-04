@@ -838,108 +838,6 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
         except Exception as e:
             logger.error(f"获取小米天气多天预报失败: {e}")
             return {}
-    
-    def parse_hourly_forecast(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """解析逐小时天气预报数据"""
-        result = []
-        precipitation_time = []  # 存储降水时间分组
-        current_precip = None    # 当前降水状态
-        count = 0                # 当前分组计数
-        
-        try:
-            temps = data.get("temperature", {}).get("value", [])
-            weather_codes = data.get("weather", {}).get("value", [])
-            
-            # 构建每小时数据
-            for i in range(min(len(temps), len(weather_codes))):
-                weather_code = str(weather_codes[i])
-                is_precip = self._is_precipitation(weather_code)
-                
-                hour_data = {
-                    "temperature": temps[i],
-                    "weather_code": weather_code,
-                    "precipitation": is_precip,  # 添加降水标记
-                    "hour": i  # 相对于当前时间的小时偏移
-                }
-                result.append(hour_data)
-                
-                # 降水状态分组统计
-                if current_precip is None:
-                    current_precip = is_precip
-                    count = 1
-                elif current_precip == is_precip:
-                    count += 1
-                else:
-                    precipitation_time.append(count)
-                    current_precip = is_precip
-                    count = 1
-            
-            if count > 0:
-                precipitation_time.append(count)
-                
-            # 添加降水分组统计结果
-            result.append({"precipitation_time": precipitation_time})
-            
-        except Exception as e:
-            logger.error(f"解析小米逐小时预报失败: {e}")
-        
-        return result
-    
-    def parse_daily_forecast(self, data: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """解析多天天气预报数据并统计降水日"""
-        result = []
-        precipitation_days = []  # 存储降水日标记
-        tomorrow_precipitation = False  # 明天白天是否降水
-        precipitation_day = 0  # 连续降水日天数
-        
-        try:
-            temp_ranges = data.get("temperature", {}).get("value", [])
-            weather_values = data.get("weather", {}).get("value", [])
-            
-            for i in range(min(len(temp_ranges), len(weather_values))):
-                weather_day = str(weather_values[i]["from"]) if "from" in weather_values[i] else ""
-                weather_night = str(weather_values[i]["to"]) if "to" in weather_values[i] else ""
-                
-                # 判断是否为降水日
-                day_precip = self._is_precipitation(weather_day) if weather_day else False
-                night_precip = self._is_precipitation(weather_night) if weather_night else False
-                is_precip_day = day_precip or night_precip
-                
-                day_data = {
-                    "day": i,  # 日期偏移
-                    "temp_high": temp_ranges[i]["to"] if "to" in temp_ranges[i] else "",
-                    "temp_low": temp_ranges[i]["from"] if "from" in temp_ranges[i] else "",
-                    "weather_day": weather_day,
-                    "weather_night": weather_night,
-                    "precipitation_day": is_precip_day,  # 标记是否为降水日
-                    "day_precipitation": day_precip  # 标记白天是否有降水
-                }
-                result.append(day_data)
-                precipitation_days.append(is_precip_day)
-                
-                # 检查明天白天是否降水
-                if i == 1:
-                    tomorrow_precipitation = day_precip
-            
-            # 计算连续降水日天数
-            if tomorrow_precipitation:
-                # 从明天开始计算连续降水日
-                for i in range(1, len(precipitation_days)):
-                    if precipitation_days[i]:
-                        precipitation_day += 1
-                    else:
-                        break
-                
-                # 添加统计结果
-                result.append({
-                    "tomorrow_precipitation": tomorrow_precipitation,
-                    "precipitation_day": precipitation_day
-                })
-        
-        except Exception as e:
-            logger.error(f"解析小米多天预报失败: {e}")
-        
-        return result
 
     def _is_precipitation(self, weather_code: str) -> bool:
         """判断天气是否为降水类型"""
@@ -958,6 +856,7 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
             temps = data.get("temperature", {}).get("value", [])
             weather_codes = data.get("weather", {}).get("value", [])
             
+            # 构建每小时数据
             for i in range(min(len(temps), len(weather_codes))):
                 weather_code = str(weather_codes[i])
                 is_precip = self._is_precipitation(weather_code)
@@ -1008,6 +907,7 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
                 weather_day = str(weather_values[i]["from"]) if "from" in weather_values[i] else ""
                 weather_night = str(weather_values[i]["to"]) if "to" in weather_values[i] else ""
                 
+                # 判断是否为降水日
                 day_precip = self._is_precipitation(weather_day) if weather_day else False
                 night_precip = self._is_precipitation(weather_night) if weather_night else False
                 is_precip_day = day_precip or night_precip
