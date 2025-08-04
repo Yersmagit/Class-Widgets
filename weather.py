@@ -494,9 +494,22 @@ class WeatherManager:
                 if len(daily_info) > 1 and 'precipitation_day' in daily_info[1]:
                     tomorrow_precipitation = daily_info[1]['precipitation_day']
                 
-                # 连续降水天数
+                # 降水持续天数
                 if isinstance(daily_info[-1], dict):
                     precipitation_day = daily_info[-1].get('precipitation_day', 0)
+
+                # 计算最高温变化值
+                if len(daily_info) >= 2:
+                    today = daily_info[0]
+                    tomorrow = daily_info[1]
+                    
+                    try:
+                        today_high = float(today['temp_low'])
+                        tomorrow_high = float(tomorrow['temp_low'])  # 尼玛怎么 temp_high 比 temp_low 小啊
+                        temp_change = tomorrow_high - today_high
+                    except (ValueError, TypeError, KeyError) as e:
+                        logger.error(f"计算温度变化失败: {e}")
+                        temp_change = 0
 
             return {
                 'precipitation': precipitation_now,  # 当前是否降水
@@ -504,7 +517,8 @@ class WeatherManager:
                 'tomorrow_precipitation': tomorrow_precipitation,  # 明天是否降水
                 'precipitation_day': precipitation_day,  # 降水持续天数
                 'first_hour_precip': first_hour_precip,  # 预报中第一小时是否降水
-                'same_precipitation': same_precipitation  # 当前降水和第一小时降水状态是否相同
+                'same_precipitation': same_precipitation,  # 当前降水和第一小时降水状态是否相同
+                'temp_change': temp_change  # 今明最高温变化值
             }
         except Exception as e:
             logger.error(f'获取降水信息失败: {e}')
@@ -520,7 +534,7 @@ class WeatherManager:
             precip_info = self.get_precipitation_info()
             reminders = []
 
-            # 当前降水提醒
+            # 降水提醒
             hourly_forecast = self.fetch_hourly_forecast()
             if hourly_forecast and len(hourly_forecast) > 0:
                 same_precipitation = precip_info['same_precipitation']
@@ -531,13 +545,13 @@ class WeatherManager:
                             reminders.append({
                                 'type': 'precipitation_hours',
                                 'title': f'降水将持续 {duration} 小时',
-                                'icon': '6'
+                                'icon': 'rain'
                             })
                         else:
                             reminders.append({
                                 'type': 'precipitation_continue',
                                 'title': f'降水将持续很久',
-                                'icon': '6'
+                                'icon': 'rain'
                             })
                     else:  # 当前没有降水，很久后才有降水
                         if precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 3:
@@ -545,29 +559,42 @@ class WeatherManager:
                             reminders.append({
                                 'type': 'precipitation_soon',
                                 'title': f'{hours} 小时后有降水',
-                                'icon': '6'
+                                'icon': 'rain'
+                            })
+                        # 明天降水提醒
+                        elif precip_info['tomorrow_precipitation']:
+                            days = precip_info['precipitation_day']  # 先留着吧
+                            reminders.append({
+                                'type': 'tomorrow_precipitation',
+                                'title': '明天有降水',
+                                'icon': 'rain'
                             })
                 else:
                     if precip_info['precipitation']:
                         reminders.append({
                             'type': 'precipitation_stop_soon',
                             'title': '雨快要停了',
-                            'icon': '1'
+                            'icon': 'no_rain'
                         })
                     else:
                         reminders.append({
                             'type': 'precipitation_start_soon',
                             'title': '快要下雨了',
-                            'icon': '6'
+                            'icon': 'rain'
                         })
-            
-            # 明天降水提醒
-            if precip_info['tomorrow_precipitation']:
-                days = precip_info['precipitation_day']  # 先留着吧
+
+            # 气温提醒      
+            if precip_info['temp_change'] >= 8:
                 reminders.append({
-                    'type': 'tomorrow_precipitation',
-                    'title': '明天有降水',
-                    'icon': '6'
+                    'type': 'temperature_change',
+                    'title': '明天气温陡升',
+                    'icon': 'high_temp'
+                })
+            elif precip_info['temp_change'] <= -8:
+                reminders.append({
+                    'type': 'temperature_drop',
+                    'title': '明天气温骤降',
+                    'icon': 'low_temp'
                 })
             
             return reminders

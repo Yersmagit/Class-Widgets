@@ -2767,7 +2767,7 @@ class DesktopWidget(QWidget):  # 主要小组件
         
         # 调整字号
         char_count = len(reminder['title'])
-        if char_count <= 7:
+        if char_count <= 5:
             font_size = 14
         elif char_count <= 10:
             font_size = 13
@@ -2781,10 +2781,13 @@ class DesktopWidget(QWidget):  # 主要小组件
         self.weather_reminder_text.setFont(font)
         
         # 设置图标
-        if char_count <= 5:
-            self.reminder_icon.setIcon(QIcon(f"{base_directory}/img/weather/{reminder['icon']}.svg"))
+        if char_count <= 6:
+            self.reminder_icon.setIcon(QIcon(f"{base_directory}/img/weather/reminders/{reminder['icon']}.svg"))
             self.reminder_icon.show()
-            self.weather_reminder_text.setFixedWidth(96)
+            if char_count == 6:
+                self.weather_reminder_text.setFixedWidth(102)
+            else:
+                self.weather_reminder_text.setFixedWidth(96)
         else:
             self.reminder_icon.hide()
             self.weather_reminder_text.setFixedWidth(138)
