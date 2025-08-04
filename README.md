@@ -92,6 +92,7 @@ Copyright © 2025 RinLit.
 
 - [SF Symbols](https://developer.apple.com/cn/sf-symbols/) （部分图标已做修改）
 - [和风天气图标](https://icons.qweather.com/)（部分图标已做修改）
+- [MSN 天气](https://www.msn.cn/zh-cn/weather/)图标（图标已修改）
 - [HarmonyOS Sans](https://developer.huawei.com/consumer/cn/design/resource/)
 
 ### 贡献

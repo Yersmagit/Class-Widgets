@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple, Type, Union
+from i18n import tr
 
 import requests
 from loguru import logger
@@ -544,13 +545,13 @@ class WeatherManager:
                             duration = precip_info['precipitation_time'][0]
                             reminders.append({
                                 'type': 'precipitation_hours',
-                                'title': f'降水将持续 {duration} 小时',
+                                'title': tr('降水将持续 {} 小时', duration),
                                 'icon': 'rain'
                             })
                         else:
                             reminders.append({
                                 'type': 'precipitation_continue',
-                                'title': '降水将持续很久',
+                                'title': tr('降水将持续很久'),
                                 'icon': 'rain'
                             })
                     else:  # 当前没有降水，很久后才有降水
@@ -558,7 +559,7 @@ class WeatherManager:
                             hours = precip_info['precipitation_time'][0]
                             reminders.append({
                                 'type': 'precipitation_soon',
-                                'title': f'{hours} 小时后有降水',
+                                'title': tr('{} 小时后有降水', hours),
                                 'icon': 'rain'
                             })
                         # 明日降水提醒
@@ -566,20 +567,20 @@ class WeatherManager:
                             days = precip_info['precipitation_day']  # 先留着吧
                             reminders.append({
                                 'type': 'tomorrow_precipitation',
-                                'title': '明日有降水',
+                                'title': tr('明日有降水'),
                                 'icon': 'rain'
                             })
                 else:
                     if precip_info['precipitation']:
                         reminders.append({
                             'type': 'precipitation_stop_soon',
-                            'title': '雨快要停了',
+                            'title': tr('雨快要停了'),
                             'icon': 'no_rain'
                         })
                     else:
                         reminders.append({
                             'type': 'precipitation_start_soon',
-                            'title': '快要下雨了',
+                            'title': tr('快要下雨了'),
                             'icon': 'rain'
                         })
 
@@ -587,13 +588,13 @@ class WeatherManager:
             if precip_info['temp_change'] >= 8:
                 reminders.append({
                     'type': 'temperature_rise',
-                    'title': '明日气温陡升',
+                    'title': tr('明日气温陡升'),
                     'icon': 'high_temp'
                 })
             elif precip_info['temp_change'] <= -8:
                 reminders.append({
                     'type': 'temperature_drop',
-                    'title': '明日气温骤降',
+                    'title': tr('明日气温骤降'),
                     'icon': 'low_temp'
                 })
             
