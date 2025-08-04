@@ -2368,7 +2368,12 @@ class DesktopWidget(QWidget):  # 主要小组件
     
     def _fade_to_temperature(self) -> None:
         """从预警或提醒渐变到温度显示"""
-        fade_out_group = QParallelAnimationGroup(self)
+        try:
+            self.fade_out_group.finished.disconnect()
+        except (TypeError, AttributeError):
+            pass
+        
+        self.fade_out_group = QParallelAnimationGroup(self)
 
         if not hasattr(self, 'weather_alert_opacity') or not self.weather_alert_opacity:
             self.weather_alert_opacity = QGraphicsOpacityEffect(self.weather_alert_text)
@@ -2409,8 +2414,8 @@ class DesktopWidget(QWidget):  # 主要小组件
                 reminder_icon_fade_out.setStartValue(1.0)
                 reminder_icon_fade_out.setEndValue(0.0)
                 
-                fade_out_group.addAnimation(reminder_text_fade_out)
-                fade_out_group.addAnimation(reminder_icon_fade_out)
+                self.fade_out_group.addAnimation(reminder_text_fade_out)
+                self.fade_out_group.addAnimation(reminder_icon_fade_out)
 
         if not hasattr(self, 'weather_opacity') or not self.weather_opacity:
             self.weather_opacity = QGraphicsOpacityEffect(self.weather_icon)
@@ -2551,7 +2556,6 @@ class DesktopWidget(QWidget):  # 主要小组件
             fade_out_group.addAnimation(alert_text_fade_out)
             fade_out_group.addAnimation(alert_icon_fade_out)
         
-        self._display_current_reminder()
         self.reminder_opacity = QGraphicsOpacityEffect(self.weather_reminder_text)
         self.reminder_icon_opacity = QGraphicsOpacityEffect(self.reminder_icon)
         self.weather_reminder_text.setGraphicsEffect(self.reminder_opacity)
@@ -2584,9 +2588,8 @@ class DesktopWidget(QWidget):  # 主要小组件
             elif self.showing_alert:
                 self._hide_alert()
             
+            self._display_current_reminder()
             self.weather_reminder_text.show()
-            if self.reminder_icon.isVisible():
-                self.reminder_icon.show()
             fade_in_group.start()
             
             self.showing_temperature = False

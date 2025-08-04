@@ -550,7 +550,7 @@ class WeatherManager:
                         else:
                             reminders.append({
                                 'type': 'precipitation_continue',
-                                'title': f'降水将持续很久',
+                                'title': '降水将持续很久',
                                 'icon': 'rain'
                             })
                     else:  # 当前没有降水，很久后才有降水
@@ -586,7 +586,7 @@ class WeatherManager:
             # 气温提醒      
             if precip_info['temp_change'] >= 8:
                 reminders.append({
-                    'type': 'temperature_change',
+                    'type': 'temperature_rise',
                     'title': '明天气温陡升',
                     'icon': 'high_temp'
                 })
