@@ -1,5 +1,6 @@
 import ctypes
 import datetime as dt
+import time
 import json
 import os
 import platform
@@ -1801,14 +1802,15 @@ class DesktopWidget(QWidget):  # 主要小组件
             self.alert_icon_animation.setDuration(700)
             self.alert_icon_animation.setEasingCurve(QEasingCurve.OutCubic)
             
-            self.showing_temperature = True  # 跟踪状态(预警/气温)
+            self.showing_temperature = True  # 是否正在显示气温
+            self.showing_alert = False  # 是否正在显示预警
 
             # 天气提醒标签
             self.weather_reminder_text = QLabel(self)
             self.weather_reminder_text.setAlignment(Qt.AlignCenter)
             self.weather_reminder_text.setStyleSheet(self.temperature.styleSheet())
             self.weather_reminder_text.setFont(self.temperature.font())
-            self.weather_reminder_text.setFixedWidth(112)  # 固定宽度
+            self.weather_reminder_text.setFixedWidth(138)
             self.weather_reminder_text.hide()
             
             # 天气提醒图标
@@ -2299,25 +2301,23 @@ class DesktopWidget(QWidget):  # 主要小组件
         self.temperature_opacity = QGraphicsOpacityEffect(self.temperature)
         self.weather_icon.setGraphicsEffect(self.weather_opacity)
         self.temperature.setGraphicsEffect(self.temperature_opacity)
+
         weather_fade_out = QPropertyAnimation(self.weather_opacity, b'opacity')
         temp_fade_out = QPropertyAnimation(self.temperature_opacity, b'opacity')
+        
         weather_fade_out.setDuration(500)
         temp_fade_out.setDuration(500)
         weather_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
         temp_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+
         weather_fade_out.setStartValue(1.0)
         weather_fade_out.setEndValue(0.0)
         temp_fade_out.setStartValue(1.0)
         temp_fade_out.setEndValue(0.0)
+
         self.fade_out_group = QParallelAnimationGroup(self)
         self.fade_out_group.addAnimation(weather_fade_out)
         self.fade_out_group.addAnimation(temp_fade_out)
-
-        # 隐藏当前显示的控件
-        if self.showing_temperature:
-            self._hide_temperature()
-        elif self.showing_reminder:
-            self._hide_reminder()
 
         if not hasattr(self, 'weather_alert_opacity') or not self.weather_alert_opacity:
             self.weather_alert_opacity = QGraphicsOpacityEffect(self.weather_alert_text)
@@ -2330,17 +2330,21 @@ class DesktopWidget(QWidget):  # 主要小组件
             self._display_current_alert()
             alert_text_fade_in = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
             alert_icon_fade_in = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
+            
             alert_text_fade_in.setDuration(500)
             alert_icon_fade_in.setDuration(500)
             alert_text_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
             alert_icon_fade_in.setEasingCurve(QEasingCurve.Type.OutCubic)
+            
             alert_text_fade_in.setStartValue(0.0)
             alert_text_fade_in.setEndValue(1.0)
             alert_icon_fade_in.setStartValue(0.0)
             alert_icon_fade_in.setEndValue(1.0)
+            
             self.fade_in_group = QParallelAnimationGroup(self)
             self.fade_in_group.addAnimation(alert_text_fade_in)
             self.fade_in_group.addAnimation(alert_icon_fade_in)
+            
             self.weather_icon.hide()
             self.temperature.hide()
             self.weather_alert_opacity.setOpacity(0.0)
@@ -2363,32 +2367,50 @@ class DesktopWidget(QWidget):  # 主要小组件
         self.showing_alert = True
     
     def _fade_to_temperature(self) -> None:
-        """从预警渐变到温度显示"""
+        """从预警或提醒渐变到温度显示"""
+        fade_out_group = QParallelAnimationGroup(self)
+
         if not hasattr(self, 'weather_alert_opacity') or not self.weather_alert_opacity:
             self.weather_alert_opacity = QGraphicsOpacityEffect(self.weather_alert_text)
             self.weather_alert_text.setGraphicsEffect(self.weather_alert_opacity)
         if not hasattr(self, 'alert_icon_opacity') or not self.alert_icon_opacity:
             self.alert_icon_opacity = QGraphicsOpacityEffect(self.alert_icon)
             self.alert_icon.setGraphicsEffect(self.alert_icon_opacity)
-        alert_text_fade_out = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
-        alert_icon_fade_out = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
-        alert_text_fade_out.setDuration(500)
-        alert_icon_fade_out.setDuration(500)
-        alert_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
-        alert_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
-        alert_text_fade_out.setStartValue(1.0)
-        alert_text_fade_out.setEndValue(0.0)
-        alert_icon_fade_out.setStartValue(1.0)
-        alert_icon_fade_out.setEndValue(0.0)
-        self.fade_out_group = QParallelAnimationGroup(self)
-        self.fade_out_group.addAnimation(alert_text_fade_out)
-        self.fade_out_group.addAnimation(alert_icon_fade_out)
 
-        # 隐藏当前显示的控件
         if self.showing_alert:
-            self._hide_alert()
+            alert_text_fade_out = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
+            alert_icon_fade_out = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
+
+            alert_text_fade_out.setDuration(500)
+            alert_icon_fade_out.setDuration(500)
+            alert_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+            alert_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+
+            alert_text_fade_out.setStartValue(1.0)
+            alert_text_fade_out.setEndValue(0.0)
+            alert_icon_fade_out.setStartValue(1.0)
+            alert_icon_fade_out.setEndValue(0.0)
+
+            self.fade_out_group = QParallelAnimationGroup(self)
+            self.fade_out_group.addAnimation(alert_text_fade_out)
+            self.fade_out_group.addAnimation(alert_icon_fade_out)
         elif self.showing_reminder:
-            self._hide_reminder()
+            if hasattr(self, 'reminder_opacity'):
+                reminder_text_fade_out = QPropertyAnimation(self.reminder_opacity, b"opacity")
+                reminder_icon_fade_out = QPropertyAnimation(self.reminder_icon_opacity, b"opacity")
+                
+                reminder_text_fade_out.setDuration(500)
+                reminder_icon_fade_out.setDuration(500)
+                reminder_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+                reminder_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+                
+                reminder_text_fade_out.setStartValue(1.0)
+                reminder_text_fade_out.setEndValue(0.0)
+                reminder_icon_fade_out.setStartValue(1.0)
+                reminder_icon_fade_out.setEndValue(0.0)
+                
+                fade_out_group.addAnimation(reminder_text_fade_out)
+                fade_out_group.addAnimation(reminder_icon_fade_out)
 
         if not hasattr(self, 'weather_opacity') or not self.weather_opacity:
             self.weather_opacity = QGraphicsOpacityEffect(self.weather_icon)
@@ -2422,7 +2444,12 @@ class DesktopWidget(QWidget):  # 主要小组件
             self.fade_out_group.finished.disconnect()
         except TypeError: 
             pass
+        
+        def on_fade_out_finished():
+            self._hide_reminder()
+
         self.fade_out_group.finished.connect(_start_temperature_fade_in)
+        self.fade_out_group.finished.connect(on_fade_out_finished)
         self.fade_out_group.start()
 
         # 重置索引
@@ -2474,21 +2501,65 @@ class DesktopWidget(QWidget):  # 主要小组件
 
     def _fade_to_reminder(self) -> None:
         """从当前显示切换到提醒显示"""
-        # 隐藏当前显示的控件
+        fade_out_group = QParallelAnimationGroup(self)
+        
         if self.showing_temperature:
-            self._hide_temperature()
+            # 淡出温度控件
+            self.weather_opacity = QGraphicsOpacityEffect(self.weather_icon)
+            self.temperature_opacity = QGraphicsOpacityEffect(self.temperature)
+            self.weather_icon.setGraphicsEffect(self.weather_opacity)
+            self.temperature.setGraphicsEffect(self.temperature_opacity)
+            
+            weather_fade_out = QPropertyAnimation(self.weather_opacity, b'opacity')
+            temp_fade_out = QPropertyAnimation(self.temperature_opacity, b'opacity')
+            
+            weather_fade_out.setDuration(500)
+            temp_fade_out.setDuration(500)
+            weather_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+            temp_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+            
+            weather_fade_out.setStartValue(1.0)
+            weather_fade_out.setEndValue(0.0)
+            temp_fade_out.setStartValue(1.0)
+            temp_fade_out.setEndValue(0.0)
+            
+            fade_out_group.addAnimation(weather_fade_out)
+            fade_out_group.addAnimation(temp_fade_out)
+
         elif self.showing_alert:
-            self._hide_alert()
+            # 淡出预警控件
+            if not hasattr(self, 'weather_alert_opacity'):
+                self.weather_alert_opacity = QGraphicsOpacityEffect(self.weather_alert_text)
+                self.weather_alert_text.setGraphicsEffect(self.weather_alert_opacity)
+            if not hasattr(self, 'alert_icon_opacity'):
+                self.alert_icon_opacity = QGraphicsOpacityEffect(self.alert_icon)
+                self.alert_icon.setGraphicsEffect(self.alert_icon_opacity)
+            
+            alert_text_fade_out = QPropertyAnimation(self.weather_alert_opacity, b'opacity')
+            alert_icon_fade_out = QPropertyAnimation(self.alert_icon_opacity, b'opacity')
+            
+            alert_text_fade_out.setDuration(500)
+            alert_icon_fade_out.setDuration(500)
+            alert_text_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+            alert_icon_fade_out.setEasingCurve(QEasingCurve.Type.OutCubic)
+            
+            alert_text_fade_out.setStartValue(1.0)
+            alert_text_fade_out.setEndValue(0.0)
+            alert_icon_fade_out.setStartValue(1.0)
+            alert_icon_fade_out.setEndValue(0.0)
+            
+            fade_out_group.addAnimation(alert_text_fade_out)
+            fade_out_group.addAnimation(alert_icon_fade_out)
         
-        # 显示提醒
         self._display_current_reminder()
-        
-        # 淡入提醒
         self.reminder_opacity = QGraphicsOpacityEffect(self.weather_reminder_text)
-        self.weather_reminder_text.setGraphicsEffect(self.reminder_opacity)
         self.reminder_icon_opacity = QGraphicsOpacityEffect(self.reminder_icon)
+        self.weather_reminder_text.setGraphicsEffect(self.reminder_opacity)
         self.reminder_icon.setGraphicsEffect(self.reminder_icon_opacity)
+        self.reminder_opacity.setOpacity(0.0)
+        self.reminder_icon_opacity.setOpacity(0.0)
         
+        # 创建淡入动画
         reminder_text_fade_in = QPropertyAnimation(self.reminder_opacity, b"opacity")
         reminder_icon_fade_in = QPropertyAnimation(self.reminder_icon_opacity, b"opacity")
         
@@ -2502,19 +2573,28 @@ class DesktopWidget(QWidget):  # 主要小组件
         reminder_icon_fade_in.setStartValue(0.0)
         reminder_icon_fade_in.setEndValue(1.0)
         
-        self.fade_in_group = QParallelAnimationGroup(self)
-        self.fade_in_group.addAnimation(reminder_text_fade_in)
-        self.fade_in_group.addAnimation(reminder_icon_fade_in)
+        fade_in_group = QParallelAnimationGroup(self)
+        fade_in_group.addAnimation(reminder_text_fade_in)
+        fade_in_group.addAnimation(reminder_icon_fade_in)
         
-        self.weather_reminder_text.show()
-        if self.reminder_icon.isVisible():
-            self.reminder_icon.show()
+        # 连接动画序列
+        def on_fade_out_finished():
+            if self.showing_temperature:
+                self._hide_temperature()
+            elif self.showing_alert:
+                self._hide_alert()
+            
+            self.weather_reminder_text.show()
+            if self.reminder_icon.isVisible():
+                self.reminder_icon.show()
+            fade_in_group.start()
+            
+            self.showing_temperature = False
+            self.showing_alert = False
+            self.showing_reminder = True
         
-        self.fade_in_group.start()
-        
-        self.showing_temperature = False
-        self.showing_alert = False
-        self.showing_reminder = True
+        fade_out_group.finished.connect(on_fade_out_finished)
+        fade_out_group.start()
 
     def _cycle_to_next_reminder_with_animation(self) -> None:
         """在提醒之间切换的动画"""
@@ -2563,33 +2643,18 @@ class DesktopWidget(QWidget):  # 主要小组件
 
     def _hide_reminder(self) -> None:
         """隐藏提醒控件"""
-        if hasattr(self, 'reminder_opacity'):
-            self.reminder_opacity.setOpacity(0.0)
-        if hasattr(self, 'reminder_icon_opacity'):
-            self.reminder_icon_opacity.setOpacity(0.0)
-        
         self.weather_reminder_text.hide()
         self.reminder_icon.hide()
         self.showing_reminder = False
 
     def _hide_temperature(self) -> None:
         """隐藏温度控件"""
-        if hasattr(self, 'weather_opacity'):
-            self.weather_opacity.setOpacity(0.0)
-        if hasattr(self, 'temperature_opacity'):
-            self.temperature_opacity.setOpacity(0.0)
-        
         self.weather_icon.hide()
         self.temperature.hide()
         self.showing_temperature = False
     
     def _hide_alert(self) -> None:
         """隐藏预警控件"""
-        if hasattr(self, 'weather_alert_opacity'):
-            self.weather_alert_opacity.setOpacity(0.0)
-        if hasattr(self, 'alert_icon_opacity'):
-            self.alert_icon_opacity.setOpacity(0.0)
-        
         self.weather_alert_text.hide()
         self.alert_icon.hide()
         self.showing_alert = False
@@ -2611,16 +2676,18 @@ class DesktopWidget(QWidget):  # 主要小组件
             alert_text = alert_title + '预警'
 
         char_count = len(alert_text)  # 动态调整宽度
-        if char_count > 5:
-            new_width = min(80 + (char_count - 5) * 14, 118)  # 计算宽度
+        if char_count > 4:
+            new_width = min(76 + (char_count - 4) * 16, 118)  # 计算宽度
             self.weather_alert_text.setFixedWidth(new_width)
         else:
-            self.weather_alert_text.setFixedWidth(80)  # 默认
+            self.weather_alert_text.setFixedWidth(76)  # 默认
 
         font = self.weather_alert_text.font()
-        if len(alert_text) <= 4:
+        if len(alert_text) <= 5:
             font.setPointSize(14)
-        elif len(alert_text) <= 7:
+        elif len(alert_text) == 6:
+            font.setPointSize(13)
+        elif len(alert_text) == 7:
             font.setPointSize(12)
         elif len(alert_text) == 8:
             font.setPointSize(11)
@@ -2700,14 +2767,14 @@ class DesktopWidget(QWidget):  # 主要小组件
         
         # 调整字号
         char_count = len(reminder['title'])
-        if char_count <= 6:
+        if char_count <= 7:
             font_size = 14
-        elif char_count <= 8:
-            font_size = 13
         elif char_count <= 10:
+            font_size = 13
+        elif char_count <= 12:
             font_size = 12
         else:
-            font_size = 10
+            font_size = 11
         
         font = self.weather_reminder_text.font()
         font.setPointSize(font_size)

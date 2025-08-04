@@ -540,17 +540,11 @@ class WeatherManager:
                                 'icon': '6'
                             })
                     else:  # 当前没有降水，很久后才有降水
-                        if precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 2:
+                        if precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 3:
                             hours = precip_info['precipitation_time'][0]
                             reminders.append({
                                 'type': 'precipitation_soon',
                                 'title': f'{hours} 小时后有降水',
-                                'icon': '6'
-                            })
-                        elif precip_info['precipitation_time'] and precip_info['precipitation_time'][0] <= 6:
-                            reminders.append({
-                                'type': 'may_precipitation',
-                                'title': '可能有降水',
                                 'icon': '6'
                             })
                 else:
@@ -572,7 +566,7 @@ class WeatherManager:
                 days = precip_info['precipitation_day']  # 先留着吧
                 reminders.append({
                     'type': 'tomorrow_precipitation',
-                    'title': f'明天有降水',
+                    'title': '明天有降水',
                     'icon': '6'
                 })
             
@@ -2253,10 +2247,6 @@ if __name__ == '__main__':
                 print(f"  白天: {day_weather}, 夜间: {night_weather}")
                 print(f"  状态: {precip_status}, {day_precip_status}")
             
-            if tomorrow_precip:
-                print(f"明天白天有降水，预计未来 {precip_days} 天有降水")
-            else:
-                print("明天白天无降水")
         else:
             print("无 5 天预报数据")
 
