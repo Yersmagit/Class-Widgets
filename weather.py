@@ -113,6 +113,20 @@ class WeatherapiProvider(ABC):
         """获取多天天气预报数据，默认5天"""
         pass
 
+    @abstractmethod
+    def fetch_forecast_data(self, location_key: str, api_key: str, forecast_type: str, days: int = 5) -> Dict[str, Any]:
+        """获取预报数据的统一方法
+        Args:
+            forecast_type: 'hourly' 或 'daily'
+            days: 仅对 daily 类型有效
+        """
+        pass
+    
+    @abstractmethod
+    def parse_forecast_data(self, raw_data: Dict[str, Any], forecast_type: str) -> List[Dict[str, Any]]:
+        """解析预报数据的统一方法"""
+        pass
+
 
 @dataclass
 class WeatherExtractionContext:
@@ -392,8 +406,13 @@ class WeatherManager:
             logger.error(f'解析天气数据失败 ({data_type}): {e}')
             return None
         
-    def fetch_hourly_forecast(self) -> List[Dict[str, Any]]:
-        """获取逐小时天气预报"""
+    def fetch_forecast(self, forecast_type: str, days: int = 5) -> List[Dict[str, Any]]:
+        """统一获取天气预报数据
+        
+        Args:
+            forecast_type: 预报类型 ('hourly' 或 'daily')
+            days: 仅对 daily 类型有效，预报天数
+        """
         provider = self.get_current_provider()
         if not provider:
             logger.error(f'未找到天气提供源: {self.get_current_api()}')
@@ -404,109 +423,135 @@ class WeatherManager:
             api_key = config_center.read_conf('Weather', 'api_key')
             
             # 获取原始数据
-            raw_data = provider.fetch_hourly_forecast(location_key, api_key)
+            raw_data = provider.fetch_forecast_data(location_key, api_key, forecast_type, days)
             
             # 解析数据
-            if isinstance(provider, XiaomiWeatherProvider):
-                return provider.parse_hourly_forecast(raw_data)
+            parsed_data = provider.parse_forecast_data(raw_data, forecast_type)
             
-            # 其他api实现...
-            return []
+            return parsed_data
         except Exception as e:
-            logger.error(f'获取逐小时预报失败: {e}')
+            logger.error(f'获取 {forecast_type} 预报失败: {e}')
             return []
+        
+    def fetch_hourly_forecast(self) -> List[Dict[str, Any]]:
+        """获取逐小时天气预报"""
+        return self.fetch_forecast('hourly')
     
     def fetch_daily_forecast(self, days: int = 5) -> List[Dict[str, Any]]:
         """获取多天天气预报"""
-        provider = self.get_current_provider()
-        if not provider:
-            logger.error(f'未找到天气提供源: {self.get_current_api()}')
-            return []
-        
-        try:
-            location_key = self._get_location_key()
-            api_key = config_center.read_conf('Weather', 'api_key')
-            
-            # 获取原始数据
-            raw_data = provider.fetch_daily_forecast(location_key, api_key, days)
-            
-            # 解析数据
-            if isinstance(provider, XiaomiWeatherProvider):
-                return provider.parse_daily_forecast(raw_data)
-            
-            # 其他api实现...
-
-            return []
-        except Exception as e:
-            logger.error(f'获取多天预报失败: {e}')
-            return []
+        return self.fetch_forecast('daily', days)
         
     def get_precipitation_info(self) -> Dict[str, Any]:
         """获取降水信息"""
         provider = self.get_current_provider()
         if not provider:
             logger.error(f'未找到天气提供源: {self.get_current_api()}')
-            return {}
+            return {
+                'precipitation': False,
+                'precipitation_time': [],
+                'tomorrow_precipitation': False,
+                'precipitation_day': 0,
+                'first_hour_precip': False,
+                'same_precipitation': True,
+                'temp_change': 0
+            }
         
         try:
-            location_key = self._get_location_key()
-            api_key = config_center.read_conf('Weather', 'api_key')
+            # 使用统一接口获取预报数据
+            hourly_data = self.fetch_hourly_forecast()
+            daily_data = self.fetch_daily_forecast(5)
             
+            # 当前降水状态
             precipitation_now = False
             if self.current_weather_data and 'now' in self.current_weather_data:
-                # 当前天气
                 current_icon = provider.parse_weather_icon(self.current_weather_data['now'])
                 if current_icon:
                     precipitation_now = provider._is_precipitation(str(current_icon))
             
-            # 逐小时预报数据
-            hourly_data = provider.fetch_hourly_forecast(location_key, api_key)
-            hourly_info = []
-            if isinstance(provider, XiaomiWeatherProvider):
-                hourly_info = provider.parse_hourly_forecast(hourly_data)
-            
-            # 多天预报数据
-            daily_data = provider.fetch_daily_forecast(location_key, api_key, 5)
-            daily_info = []
-            if isinstance(provider, XiaomiWeatherProvider):
-                daily_info = provider.parse_daily_forecast(daily_data)
-            
-            # 降水信息
+            # 降水信息初始化
             precipitation_time = []
             tomorrow_precipitation = False
             precipitation_day = 0
             first_hour_precip = False
             same_precipitation = True
+            temp_change = 0
             
-            # 从逐小时预报中提取降水时间分组
-            if hourly_info:
-                # 第一个时间段是否为降水
-                if len(hourly_info) > 0 and 'precipitation' in hourly_info[0]:
-                    first_hour_precip = hourly_info[0]['precipitation']
-                    same_precipitation = (precipitation_now == first_hour_precip)
+            # 处理逐小时预报数据
+            if hourly_data:
+                # 确保是列表类型
+                if not isinstance(hourly_data, list):
+                    logger.warning(f"逐小时预报数据不是列表类型: {type(hourly_data)}")
+                    hourly_data = []
                 
-                # 降水时间分组
-                if isinstance(hourly_info[-1], dict) and 'precipitation_time' in hourly_info[-1]:
-                    precipitation_time = hourly_info[-1]['precipitation_time']
-            
-            # 从多天预报中提取降水信息
-            if daily_info:
-                # 明日降水信息
-                if len(daily_info) > 1 and 'precipitation_day' in daily_info[1]:
-                    tomorrow_precipitation = daily_info[1]['precipitation_day']
-                
-                # 降水持续天数
-                if isinstance(daily_info[-1], dict):
-                    precipitation_day = daily_info[-1].get('precipitation_day', 0)
-
-                # 计算最高温变化值
-                if len(daily_info) >= 2:
-                    today = daily_info[0]
-                    tomorrow = daily_info[1]
+                if len(hourly_data) > 0:
+                    first_hour = hourly_data[0]
+                    # 获取第一个小时的降水状态
+                    if 'precipitation' in first_hour:
+                        first_hour_precip = first_hour['precipitation']
+                    elif 'weather_code' in first_hour:
+                        first_hour_precip = provider._is_precipitation(str(first_hour['weather_code']))
                     
-                    try:
-                        today_high = float(today['temp_low'])
-                        tomorrow_high = float(tomorrow['temp_low'])  # 尼玛怎么 temp_high 比 temp_low 小啊
+                    same_precipitation = (precipitation_now == first_hour_precip)
+                    
+                    # 降水时间分组
+                    current_precip = None
+                    count = 0
+                    for hour in hourly_data:
+                        is_precip = False
+                        if 'precipitation' in hour:
+                            is_precip = hour['precipitation']
+                        elif 'weather_code' in hour:
+                            is_precip = provider._is_precipitation(str(hour['weather_code']))
+                        
+                        if current_precip is None:
+                            current_precip = is_precip
+                            count = 1
+                        elif current_precip == is_precip:
+                            count += 1
+                        else:
+                            precipitation_time.append(count)
+                            current_precip = is_precip
+                            count = 1
+                    
+                    # 添加最后一组
+                    if count > 0:
+                        precipitation_time.append(count)
+            
+            # 处理多天预报数据
+            if daily_data:
+                # 确保是列表类型
+                if not isinstance(daily_data, list):
+                    logger.warning(f"多天预报数据不是列表类型: {type(daily_data)}")
+                    daily_data = []
+                
+                if len(daily_data) > 1:
+                    tomorrow = daily_data[1]
+                    # 获取明日降水状态
+                    if 'precipitation_day' in tomorrow:
+                        tomorrow_precipitation = tomorrow['precipitation_day']
+                    elif 'weather_day' in tomorrow:
+                        tomorrow_precipitation = provider._is_precipitation(str(tomorrow['weather_day']))
+                    
+                    # 降水持续天数
+                    for day in daily_data:
+                        if 'precipitation_day' in day:
+                            if day['precipitation_day']:
+                                precipitation_day += 1
+                            else:
+                                break
+                        elif 'weather_day' in day:
+                            if provider._is_precipitation(str(day['weather_day'])):
+                                precipitation_day += 1
+                            else:
+                                break
+                    
+                    # 计算最高气温变化
+                    #                                  ! 小米天气api 的 temp_low 才是最高气温 以后可能需要单独处理 !
+                    today = daily_data[0]
+                    tomorrow = daily_data[1]
+                    try:  #                            ↑ ↑ ↑
+                        today_high = float(today.get('temp_low', today.get('tempMax', today.get('daytemp', 0))))
+                        tomorrow_high = float(tomorrow.get('temp_low', tomorrow.get('tempMax', tomorrow.get('daytemp', 0))))
                         temp_change = tomorrow_high - today_high
                     except (ValueError, TypeError, KeyError) as e:
                         logger.error(f"计算温度变化失败: {e}")
@@ -523,7 +568,15 @@ class WeatherManager:
             }
         except Exception as e:
             logger.error(f'获取降水信息失败: {e}')
-            return {}
+            return {
+                'precipitation': False,
+                'precipitation_time': [],
+                'tomorrow_precipitation': False,
+                'precipitation_day': 0,
+                'first_hour_precip': False,
+                'same_precipitation': True,
+                'temp_change': 0
+            }
 
     def get_weather_reminders(self) -> List[Dict[str, Any]]:
         """获取天气提醒信息"""
@@ -738,6 +791,83 @@ class GenericWeatherProvider(WeatherapiProvider):
             return value.get(key)
         else:
             return None
+        
+    def fetch_forecast_data(self, location_key: str, api_key: str, forecast_type: str, days: int = 5) -> Dict[str, Any]:
+        """获取预报数据的统一方法"""
+        config_key = f"{forecast_type}_forecast"
+        forecast_config = self.config.get(config_key, {})
+        
+        if not forecast_config:
+            logger.warning(f"{self.api_name} 未配置 {forecast_type} 预报")
+            return {}
+            
+        try:
+            from network_thread import proxies
+            url_template = forecast_config.get('url', '')
+            if not url_template:
+                return {}
+                
+            # 替换模板中的变量
+            url = url_template.format(
+                location_key=location_key, 
+                key=api_key,
+                days=days
+            )
+            
+            # 对于坐标类型的API
+            if self.config.get('method') == 'coordinates':
+                if ',' in location_key:
+                    lon, lat = location_key.split(',')
+                    url = url.format(lon=lon, lat=lat)
+            
+            logger.debug(f"获取 {forecast_type} 预报数据: {url}")
+            response = requests.get(url, proxies=proxies, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            logger.error(f"获取 {forecast_type} 预报失败: {e}")
+            return {}
+    
+    def parse_forecast_data(self, raw_data: Dict[str, Any], forecast_type: str) -> List[Dict[str, Any]]:
+        """解析预报数据的统一方法"""
+        config_key = f"{forecast_type}_forecast"
+        forecast_config = self.config.get(config_key, {})
+        
+        if not forecast_config:
+            return []
+            
+        data_path = forecast_config.get('data_path', '')
+        if not data_path:
+            return []
+            
+        # 提取原始预报数据
+        forecast_data = self._extract_value_by_path(raw_data, data_path)
+        if not forecast_data:
+            return []
+            
+        # 确保数据是列表类型
+        if not isinstance(forecast_data, list):
+            forecast_data = [forecast_data]
+            
+        # 创建基本预报条目
+        forecast_items = []
+        for i, item in enumerate(forecast_data):
+            if not isinstance(item, dict):
+                continue
+                
+            forecast_item = {}
+            # 映射字段
+            for field, path_template in forecast_config.get('fields', {}).items():
+                # 处理路径中的索引占位符
+                path = path_template.replace('{index}', str(i))
+                value = self._extract_value_by_path(item, path)
+                if value is not None:
+                    forecast_item[field] = value
+                    
+            if forecast_item:
+                forecast_items.append(forecast_item)
+                
+        return forecast_items
 
 
 class XiaomiWeatherProvider(GenericWeatherProvider):
@@ -831,38 +961,23 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
             'description': alert_item.get('detail', '')
         }
 
-    def fetch_hourly_forecast(self, location_key: str, api_key: str) -> Dict[str, Any]:
+    def fetch_hourly_forecast(self, location_key: str, api_key: str) -> List[Dict[str, Any]]:
         """获取小米天气的逐小时预报数据"""
         try:
-            full_data = self.fetch_current_weather(location_key, api_key)
-            if not full_data:
-                return {}
-            
-            hourly_forecast = full_data.get("forecastHourly", {})
-            return hourly_forecast
+            raw_data = super().fetch_hourly_forecast(location_key, api_key)
+            return self.parse_hourly_forecast(raw_data)
         except Exception as e:
             logger.error(f"获取小米天气逐小时预报失败: {e}")
-            return {}
-    
-    def fetch_daily_forecast(self, location_key: str, api_key: str, days: int = 5) -> Dict[str, Any]:
+            return []
+
+    def fetch_daily_forecast(self, location_key: str, api_key: str, days: int = 5) -> List[Dict[str, Any]]:
         """获取小米天气的多天预报数据"""
         try:
-            full_data = self.fetch_current_weather(location_key, api_key)
-            if not full_data:
-                return {}
-            
-            daily_forecast = full_data.get("forecastDaily", {})
-            
-            # 根据请求的天数截取数据
-            if days > 0:
-                for key in ["temperature", "weather", "wind", "precipitationProbability"]:
-                    if key in daily_forecast and "value" in daily_forecast[key]:
-                        daily_forecast[key]["value"] = daily_forecast[key]["value"][:days]
-            
-            return daily_forecast
+            raw_data = super().fetch_daily_forecast(location_key, api_key, days)
+            return self.parse_daily_forecast(raw_data)
         except Exception as e:
             logger.error(f"获取小米天气多天预报失败: {e}")
-            return {}
+            return []
 
     def _is_precipitation(self, weather_code: str) -> bool:
         """判断天气是否为降水类型"""
@@ -972,6 +1087,39 @@ class XiaomiWeatherProvider(GenericWeatherProvider):
             logger.error(f"解析小米多天预报失败: {e}")
         
         return result
+
+    def fetch_forecast_data(self, location_key: str, api_key: str, forecast_type: str, days: int = 5) -> Dict[str, Any]:
+        """小米天气特殊处理"""
+        try:
+            # 获取完整天气数据
+            full_data = self.fetch_current_weather(location_key, api_key)
+            if not full_data:
+                return {}
+                
+            if forecast_type == 'hourly':
+                hourly_forecast = full_data.get("forecastHourly", {})
+                return hourly_forecast
+            elif forecast_type == 'daily':
+                daily_forecast = full_data.get("forecastDaily", {})
+                # 根据请求的天数截取数据
+                if days > 0:
+                    for key in ["temperature", "weather", "wind", "precipitationProbability"]:
+                        if key in daily_forecast and "value" in daily_forecast[key]:
+                            daily_forecast[key]["value"] = daily_forecast[key]["value"][:days]
+                return daily_forecast
+            else:
+                return {}
+        except Exception as e:
+            logger.error(f"获取小米天气{forecast_type}预报失败: {e}")
+            return {}
+    
+    def parse_forecast_data(self, raw_data: Dict[str, Any], forecast_type: str) -> List[Dict[str, Any]]:
+        """小米天气特殊解析"""
+        if forecast_type == 'hourly':
+            return self.parse_hourly_forecast(raw_data)
+        elif forecast_type == 'daily':
+            return self.parse_daily_forecast(raw_data)
+        return []
 
 
 class QWeatherProvider(GenericWeatherProvider):
@@ -1099,6 +1247,13 @@ class QWeatherProvider(GenericWeatherProvider):
     def supports_alerts(self) -> bool:
         """和风天气支持预警功能"""
         return True
+    
+    def _is_precipitation(self, weather_code: str) -> bool:
+        """判断天气是否为降水类型（和风天气）"""
+        if weather_code.isdigit():
+            code = int(weather_code)
+            return 300 <= code < 700
+        return False
 
 
 class AmapWeatherProvider(GenericWeatherProvider):
@@ -1253,6 +1408,14 @@ class OpenMeteoProvider(GenericWeatherProvider):
         except Exception as e:
             logger.error(f"解析 Open-Meteo 描述失败: {e}")
             return None
+
+    def _is_precipitation(self, weather_code: str) -> bool:
+        """判断天气是否为降水类型（Open-Meteo）"""
+        # Open-Meteo降水代码: 51-67, 71-77, 80-86, 95-99
+        if weather_code.isdigit():
+            code = int(weather_code)
+            return (51 <= code <= 67) or (71 <= code <= 77) or (80 <= code <= 86) or (95 <= code <= 99)
+        return False
 
 
 class WeatherDatabase:
