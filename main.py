@@ -1827,7 +1827,7 @@ class DesktopWidget(QWidget):  # 主要小组件
             self.showing_reminder = False  # 是否正在显示提醒
 
             self.weather_timer = QTimer(self)
-            self.weather_timer.setInterval(30 * 60 * 1000)  # 30分钟更新一次
+            self.weather_timer.setInterval(15 * 60 * 1000)  # 15分钟更新一次
             self.weather_timer.timeout.connect(self.get_weather_data)
             self.weather_timer.start()
             self.get_weather_data()
