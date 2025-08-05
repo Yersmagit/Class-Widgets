@@ -622,47 +622,6 @@ class WeatherManager:
                     'icon': 'low_temp'
                 })
 
-            reminders.append({
-                'type': 'precipitation_start_soon',
-                'title': QCoreApplication.translate(
-                    "WeatherReminder", 
-                    "快要下雨了"
-                ),
-                'icon': 'rain'
-            })
-            reminders.append({
-                'type': 'precipitation_stop_soon',
-                'title': QCoreApplication.translate(
-                    "WeatherReminder", 
-                    "雨快要停了"
-                ),
-                'icon': 'no_rain'
-            })
-            reminders.append({
-                'type': 'tomorrow_precipitation',
-                'title': QCoreApplication.translate(
-                    "WeatherReminder", 
-                    "明日有降水"
-                ),
-                'icon': 'rain'
-            })
-            reminders.append({
-                'type': 'temperature_rise',
-                'title': QCoreApplication.translate(
-                    "WeatherReminder", 
-                    "明日气温陡升"
-                ),
-                'icon': 'high_temp'
-            })
-            reminders.append({
-                'type': 'temperature_drop',
-                'title': QCoreApplication.translate(
-                    "WeatherReminder", 
-                    "明日气温骤降"
-                ),
-                'icon': 'low_temp'
-            })
-
             return reminders
         except Exception as e:
             logger.error(f'获取天气提醒失败: {e}')
