@@ -102,24 +102,10 @@ class WeatherapiProvider(ABC):
     def get_database_name(self) -> str:
         """获取数据库文件名"""
         return self.config.get('database', 'xiaomi_weather.db')
-    
-    @abstractmethod
-    def fetch_hourly_forecast(self, location_key: str, api_key: str) -> Dict[str, Any]:
-        """获取逐小时天气预报数据"""
-        pass
-    
-    @abstractmethod
-    def fetch_daily_forecast(self, location_key: str, api_key: str, days: int = 5) -> Dict[str, Any]:
-        """获取多天天气预报数据，默认5天"""
-        pass
 
     @abstractmethod
     def fetch_forecast_data(self, location_key: str, api_key: str, forecast_type: str, days: int = 5) -> Dict[str, Any]:
-        """获取预报数据的统一方法
-        Args:
-            forecast_type: 'hourly' 或 'daily'
-            days: 仅对 daily 类型有效
-        """
+        """获取预报数据的统一方法"""
         pass
     
     @abstractmethod
@@ -868,6 +854,24 @@ class GenericWeatherProvider(WeatherapiProvider):
                 forecast_items.append(forecast_item)
                 
         return forecast_items
+    
+    def fetch_hourly_forecast(self, location_key: str, api_key: str) -> List[Dict[str, Any]]:
+        """获取逐小时天气预报数据（兼容接口）"""
+        try:
+            raw_data = self.fetch_forecast_data(location_key, api_key, "hourly")
+            return self.parse_forecast_data(raw_data, "hourly")
+        except Exception as e:
+            logger.error(f"获取逐小时预报失败: {e}")
+            return []
+    
+    def fetch_daily_forecast(self, location_key: str, api_key: str, days: int = 5) -> List[Dict[str, Any]]:
+        """获取多天天气预报数据（兼容接口）"""
+        try:
+            raw_data = self.fetch_forecast_data(location_key, api_key, "daily", days)
+            return self.parse_forecast_data(raw_data, "daily")
+        except Exception as e:
+            logger.error(f"获取多天预报失败: {e}")
+            return []
 
 
 class XiaomiWeatherProvider(GenericWeatherProvider):

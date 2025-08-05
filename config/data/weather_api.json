@@ -62,26 +62,7 @@
       },
       "database": "xiaomi_weather.db",
       "return_desc": false,
-      "method": "location_key",
-      "hourly_forecast": {
-        "url": "https://devapi.qweather.com/v7/weather/24h?location={location_key}&key={key}",
-        "data_path": "hourly",
-        "fields": {
-          "temperature": "temp",
-          "weather_code": "icon",
-          "hour": "fxTime"
-        }
-      },
-      "daily_forecast": {
-        "url": "https://devapi.qweather.com/v7/weather/7d?location={location_key}&key={key}",
-        "data_path": "daily",
-        "fields": {
-          "temp_high": "tempMax",
-          "temp_low": "tempMin",
-          "weather_day": "iconDay",
-          "weather_night": "iconNight"
-        }
-      }
+      "method": "location_key"
     },
     "amap_weather": {
       "temp": "temperature",
@@ -105,25 +86,7 @@
       "alerts": {},
       "database": "amap_weather.db",
       "return_desc": false,
-      "method": "coordinates",
-      "hourly_forecast": {
-        "url": "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,weather_code&timezone=auto&forecast_days=2",
-        "data_path": "hourly",
-        "fields": {
-          "temperature": "temperature_2m.{index}",
-          "weather_code": "weather_code.{index}",
-          "hour": "time.{index}"
-        }
-      },
-      "daily_forecast": {
-        "url": "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days={days}",
-        "data_path": "daily",
-        "fields": {
-          "temp_high": "temperature_2m_max.{index}",
-          "temp_low": "temperature_2m_min.{index}",
-          "weather_day": "weather_code.{index}"
-        }
-      }
+      "method": "coordinates"
     }
   },
   "weather_api_list": ["xiaomi_weather", "qweather", "amap_weather", "qq_weather", "open_meteo"],
